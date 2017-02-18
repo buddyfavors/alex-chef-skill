@@ -1,0 +1,10 @@
+{
+  "name": "Chef",
+  "version": "1.0.0",
+  "description": "Alexa helps you with dinner suggestions!",
+  "main": "app.js",
+  "author": "Buddy Favors JR",
+  "license": "MIT",
+  "dependencies": {
+  }
+}
