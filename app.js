@@ -48,18 +48,51 @@ const model = {
 
 function getDinnerOption(suggestions) {
     const dinnerOptions = model.DINNERS;
+
+    if (dinnerOptions.length === 0) {
+      return null;
+    }
+
     const optionIndex = Math.floor(Math.random() * dinnerOptions.length);
     const dinnerOption =  dinnerOptions[optionIndex];
     dinnerOptions.splice(optionIndex, 1);
     return dinnerOption;
 }
 
-app.launch(function(req, res) {
-  res.session('suggestions', []);
+function getNextDinnerOption(res, suggestions) {
+  var dinnerOption = getDinnerOption(suggestions);
 
+  if (dinnerOption === null) {
+    res.say("Sorry, I'm out of suggestions.");
+    return;
+  }
+
+  suggestions.push(dinnerOption);
+  res.session('suggestions', suggestions);
+
+  const prompt = (suggestions.length === 0 ? model.GET_DINNER_MESSAGE : '') + dinnerOption;
+  res.say(prompt).shouldEndSession(false);
+}
+
+app.launch(function(req, res) {
   const prompt = model.HELP_MESSAGE;
   res.say(prompt).reprompt(prompt).shouldEndSession(false);
 });
+
+app.intent('StartDinnerIntent', {
+  "slots": {
+  },
+  "utterances": [
+    "dinner",
+    "What is for dinner"
+  ]
+},
+  function(req, res) {
+    res.session('suggestions', []);
+    const suggestions = req.session('suggestions');
+    getNextDinnerOption(res, suggestions);
+  }
+);
 
 app.intent('GetDinnerIntent', {
   "slots": {
@@ -86,18 +119,8 @@ app.intent('GetDinnerIntent', {
       res.reprompt("Sorry, I didn't understand. Try again.").shouldEndSession(false);
       return;
     }
-    var dinnerOption = getDinnerOption(suggestions);
 
-    if (dinnerOption === null) {
-      res.say("Sorry, I'm out of suggestions.");
-      return;
-    }
-
-    suggestions.push(dinnerOption);
-    res.session('suggestions', suggestions);
-
-    const prompt = (suggestions.length == 0 ? model.GET_DINNER_MESSAGE : '') + dinnerOption;
-    res.say(prompt).shouldEndSession(false);
+    getNextDinnerOption(res, suggestions);
   }
 );
 
